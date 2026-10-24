@@ -1,0 +1,53 @@
+{
+    "name": "omnigame/igdb",
+    "type": "library",
+    "description": "Omnigame's IGDB, under any PHP host: Twitch's games database through Apicalypse queries - search, a game's record by its IGDB, Steam or GOG number with its studios, platforms, cover and screenshots, score and identifiers on the stores; Twitch's application token got and renewed by itself.",
+    "keywords": [
+        "igdb",
+        "twitch",
+        "game",
+        "games",
+        "database",
+        "apicalypse",
+        "framework-agnostic",
+        "omnigame"
+    ],
+    "homepage": "https://github.com/glitchr-studio/omnigame-igdb",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marco Meyer",
+            "email": "marco.meyer@glitchr.io"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "omniscient/omnigame": "^1.0@dev",
+        "symfony/http-client": "^6.4|^7.0|^8.0"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Omnigame\\Igdb\\": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Omnigame\\Igdb\\Tests\\": "Tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-1.x": "1.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
