@@ -12,7 +12,7 @@
         "framework-agnostic",
         "omnigame"
     ],
-    "homepage": "https://github.com/glitchr-studio/omnigame-igdb",
+    "homepage": "https://github.com/glitchr-omnisense/omnigame-igdb",
     "license": "MIT",
     "authors": [
         {
@@ -22,7 +22,7 @@
     ],
     "require": {
         "php": ">=8.2",
-        "omniscient/omnigame": "^1.0@dev",
+        "omnisense/omnigame": "^1.0@dev",
         "symfony/http-client": "^6.4|^7.0|^8.0"
     },
     "require-dev": {

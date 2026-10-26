@@ -1,6 +1,6 @@
 # omnigame/igdb
 
-[omniscient/omnigame](https://github.com/glitchr-studio/omnigame)'s IGDB, Twitch's games database,
+[omnisense/omnigame](https://github.com/glitchr-omnisense/omnigame)'s IGDB, Twitch's games database,
 under any PHP host: an application token got from Twitch with the client credentials and renewed a
 minute before it expires; search and a game's record through Apicalypse queries (`POST /v4/games`);
 a game found by its IGDB number or by its Steam or GOG number (`/v4/external_games`); its studios,
