@@ -151,11 +151,16 @@ final class IgdbProvider implements ProviderInterface, SearchInterface, Catalogu
         return $this->json->request('POST', $this->api.'/'.$endpoint, ['body' => $body], ['Client-ID' => $this->clientId, 'Authorization' => 'Bearer '.$this->token(), 'Content-Type' => 'text/plain']);
     }
 
-    /** Twitch's application token, got once and again a minute before it expires. */
+    /**
+     * Twitch's application token, got once and again a minute before it
+     * expires: the client credentials grant, form-encoded in the body as
+     * Twitch's documentation sends it - the secret never in the URL, where
+     * logs and messages keep it.
+     */
     private function token(): string
     {
         if (null === $this->token || time() >= $this->expires) {
-            $answer = $this->json->request('POST', $this->tokenUrl, ['query' => ['client_id' => $this->clientId, 'client_secret' => $this->clientSecret, 'grant_type' => 'client_credentials']]);
+            $answer = $this->json->request('POST', $this->tokenUrl, ['body' => ['client_id' => $this->clientId, 'client_secret' => $this->clientSecret, 'grant_type' => 'client_credentials']]);
             $this->token = $answer?->string('access_token') ?? throw ProviderException::answered('Twitch', 'POST /oauth2/token', 'no token', (string) $answer?->string('message'));
             $this->expires = time() + max(60, ($answer->int('expires_in') ?? 3600) - 60);
         }

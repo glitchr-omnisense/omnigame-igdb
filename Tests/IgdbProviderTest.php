@@ -28,7 +28,11 @@ final class IgdbProviderTest extends TestCase
         $games = self::provider($http)->search(new Query('portal "2"', limit: 5));
 
         self::assertSame(['POST', 'https://id.twitch.tv/oauth2/token'], [$http->requests[0]['method'], $http->requests[0]['url']]);
-        self::assertSame(['client_id' => 'not-a-real-client-id', 'client_secret' => 'not-a-real-client-secret', 'grant_type' => 'client_credentials'], $http->requests[0]['options']['query'] ?? null);
+        // Twitch's client credentials grant, form-encoded in the body as its documentation sends it
+        // (https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow):
+        // the secret never in the URL, where logs and messages keep it.
+        self::assertSame(['client_id' => 'not-a-real-client-id', 'client_secret' => 'not-a-real-client-secret', 'grant_type' => 'client_credentials'], $http->requests[0]['options']['body'] ?? null);
+        self::assertArrayNotHasKey('query', $http->requests[0]['options']);
         self::assertSame('https://api.igdb.com/v4/games', $http->requests[1]['url']);
         self::assertStringStartsWith('search "portal \"2\""; fields name,slug,', self::body($http, 1));
         self::assertStringEndsWith('; limit 5;', self::body($http, 1));
@@ -55,6 +59,21 @@ final class IgdbProviderTest extends TestCase
         self::assertStringEndsWith('; where id = 72;', self::body($http, 2));
         self::assertNull($provider->game(GameRef::igdb(1)));
         self::assertCount(1, array_filter($http->requests, static fn (array $r) => str_contains($r['url'], 'oauth2')), 'the token got once');
+    }
+
+    public function testTheSecretStaysOutOfAnUnreachableMessage(): void
+    {
+        $http = new \Symfony\Component\HttpClient\MockHttpClient(static function (string $method, string $url, array $options): never {
+            throw new \Symfony\Component\HttpClient\Exception\TransportException(\sprintf('Could not resolve host: id.twitch.tv for "%s".', $url));
+        });
+
+        try {
+            (new IgdbFactory($http))->create(['client_id' => 'not-a-real-client-id', 'client_secret' => 'not-a-real-client-secret'])->search(new Query('portal'));
+            self::fail('no exception');
+        } catch (\Omnigame\Exception\UnreachableException $e) {
+            self::assertStringNotContainsString('not-a-real-client-secret', $e->getMessage());
+            self::assertStringContainsString('POST /oauth2/token', $e->getMessage());
+        }
     }
 
     public function testOnlyIgdbSteamAndGogNumbersAreKnown(): void

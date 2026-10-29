@@ -7,7 +7,7 @@ its identifiers on Steam, GOG, Epic and itch.io. The provider calls:
 
 | Operation | Request |
 |---|---|
-| token | `POST https://id.twitch.tv/oauth2/token?client_id=...&client_secret=...&grant_type=client_credentials` |
+| token | `POST https://id.twitch.tv/oauth2/token`, form-encoded body `client_id=...&client_secret=...&grant_type=client_credentials` ([Twitch's client credentials grant](https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow)) |
 | search | `POST https://api.igdb.com/v4/games`, body `search "..."; fields ...; limit n;` |
 | a record | `POST /v4/games`, body `fields ...; where id = n;` |
 | by a store's number | `POST /v4/external_games`, body `fields game; where uid = "620" & external_game_source = 1; limit 1;` |
@@ -102,7 +102,7 @@ Portal 2 | 2011-04-18 | no price
   screenshot https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc0001.jpg
   rating igdb 92.3/100 (1200)
   https://www.igdb.com/games/portal-2
-  > POST https://id.twitch.tv/oauth2/token {"client_id":"example-id","client_secret":"example-secret","grant_type":"client_credentials"}
+  > POST https://id.twitch.tv/oauth2/token {"client_id":"example-id","client_secret":"example-secret","grant_type":"client_credentials"}   (the query then; the body since 2026-10-29)
   > POST https://api.igdb.com/v4/external_games body: fields game; where uid = "620" & external_game_source = 1; limit 1;
   > POST https://api.igdb.com/v4/games body: fields name,slug,summary,first_release_date,url,status,cover.image_id,screenshots.image_id,genres.name,themes.name,platforms.name,involved_companies.developer,involved_companies.publisher,involved_companies.company.name,external_games.category,external_games.external_game_source,external_games.uid,total_rating,total_rating_count; where id = 72;
 ```
@@ -129,15 +129,16 @@ services:
   network error: `UnreachableException`;
 - a missing `client_id` or `client_secret`: `InvalidConfigException`.
 
-> [!WARNING]
-> Known defect: the token is asked with the client secret in the query string, so a network error's
-> message quotes it (`... for "https://id.twitch.tv/oauth2/token?client_id=ID&client_secret=SECRET&grant_type=client_credentials".`,
-> seen in a container with no network, 2026-10-27), where secrets are expected to stay out of
-> messages. Keep these messages out of pages and shared logs.
+The token is asked with the client id and secret in a form-encoded body, as Twitch's documentation
+sends them, never in the URL; and a network error's message names the method and the path only,
+with the HTTP client's reason without the URL (`IGDB could not be reached for POST /oauth2/token:
+Could not resolve host: id.twitch.tv.`). Form-encoded credentials follow Twitch's documentation;
+no Twitch application was used to check them live.
 
 ## Verified, and not
 
-Tested offline (`Tests/IgdbProviderTest.php`, in the core's harness, PHP 8.4): the token got once, a
+Tested offline (`Tests/IgdbProviderTest.php`, in the core's harness, PHP 8.4): the token got once, its
+credentials in the body and not in the query, the secret out of an unreachable Twitch's message, a
 search by Apicalypse (quotes escaped), a game by its Steam number, unknown, only IGDB, Steam and GOG
 numbers known. The answers are shaped after IGDB's documentation and written by hand.
 `Tests/BareTest.php` loads every class with the package's requirements alone.
